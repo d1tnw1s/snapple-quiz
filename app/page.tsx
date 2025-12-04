@@ -12,8 +12,6 @@ import {
 
 /* -----------------------------------------------------------
    NO-FAIL CSS STYLES
-   These styles are injected directly into the browser.
-   They cannot be broken by build tools.
 ----------------------------------------------------------- */
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600;700&display=swap');
@@ -88,7 +86,7 @@ const styles = `
 
   .grid-btn.selected {
     border-width: 3px;
-    background: #fdf4ff; /* light purple tint */
+    background: #fdf4ff;
     border-color: #a855f7;
     transform: scale(1.05);
     box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.2);
@@ -271,11 +269,11 @@ const styles = `
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 60px;
     border: 5px solid white;
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
     margin: 20px 0;
     overflow: hidden;
+    position: relative;
   }
   
   .avatar-img {
@@ -407,10 +405,41 @@ export default function SnappleQuizApp() {
     if (state.currentStep < questions.length - 1) {
       setState(prev => ({ ...prev, currentStep: prev.currentStep + 1 }));
     } else {
-      setTimeout(() => {
-        setState(prev => ({ ...prev, status: 'results', results: { element: 'Fire', product: 'Snapple Peach Tea', desc: "Matches your spicy energy!", avatarUrl: null } }));
-      }, 2000);
+      // --- START: GENERATE FREE AVATAR ---
+      // We use a fake delay to make it feel like "Analysis"
       setState(prev => ({ ...prev, status: 'analyzing' }));
+
+      setTimeout(() => {
+        // 1. Determine Element
+        const mood = state.answers['mood'] || 'fire';
+        const elementMap = { fire: 'Fire', rain: 'Rain', air: 'Air', earth: 'Earth' };
+        const element = elementMap[mood];
+
+        // 2. Determine Product
+        const flavorScore = parseInt(state.answers['flavor'] || "50");
+        let product = 'Snapple Elements';
+        if (flavorScore < 40) product = 'Snapple Peach Tea';
+        else if (flavorScore > 70) product = 'Snapple Kiwi Strawberry';
+
+        // 3. Generate Free DiceBear Avatar URL
+        // We use the timestamp as a "seed" so it's unique every time
+        const uniqueSeed = Date.now().toString(); 
+        // We set background color based on element (Warm for fire, Cool for rain)
+        const bgColors = { 'Fire': 'ffdfbf', 'Rain': 'b6e3f4', 'Air': 'e1eadf', 'Earth': 'd1d4f9' };
+        const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${uniqueSeed}&backgroundColor=${bgColors[element]}`;
+
+        setState(prev => ({ 
+            ...prev, 
+            status: 'results', 
+            results: { 
+              element, 
+              product, 
+              desc: "Based on your unique vibe, we've found your perfect match!", 
+              avatarUrl 
+            } 
+        }));
+      }, 2500);
+      // --- END: GENERATE FREE AVATAR ---
     }
   };
 
@@ -444,7 +473,8 @@ export default function SnappleQuizApp() {
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="card">
             <h1 className="title" style={{ fontSize: '50px', color: '#f97316', margin: '10px 0' }}>{state.results.element}</h1>
             <div className="avatar-box">
-                {state.results.avatarUrl ? <img src={state.results.avatarUrl} className="avatar-img" /> : '🧑‍🎨'}
+                {/* DISPLAY THE FREE AVATAR HERE */}
+                <img src={state.results.avatarUrl} className="avatar-img" alt="Generated Avatar" />
             </div>
             <div style={{ background: '#fff7ed', padding: '20px', borderRadius: '15px', border: '1px solid #ffedd5', marginTop: '20px' }}>
                 <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b' }}>{state.results.product}</h2>
