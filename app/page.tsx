@@ -7,7 +7,8 @@ import {
   Flame, CloudRain, Wind, Mountain, 
   Coffee, Droplets, Utensils, Zap, 
   Heart, Leaf, DollarSign, Smile, 
-  ChevronUp, Check, ArrowRight, RotateCcw
+  ChevronUp, Check, ArrowRight, RotateCcw,
+  Gift // Added Gift icon for the discount button
 } from 'lucide-react';
 
 /* -----------------------------------------------------------
@@ -262,24 +263,17 @@ const styles = `
     box-shadow: 0 10px 20px rgba(0,0,0,0.15);
   }
 
-  .avatar-box {
+  .emoji-box {
     background: #f1f5f9;
     border-radius: 20px;
-    height: 250px;
+    height: 200px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 100px;
     border: 5px solid white;
     box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
     margin: 20px 0;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .avatar-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
 
   .start-btn {
@@ -299,6 +293,43 @@ const styles = `
   
   .start-btn:active {
     transform: scale(0.98);
+  }
+  
+  /* ACTION BUTTONS CONTAINER */
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 25px;
+  }
+  
+  .action-btn {
+    flex: 1;
+    padding: 15px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    transition: transform 0.1s;
+  }
+  
+  .action-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .btn-restart {
+    background: #e2e8f0;
+    color: #475569;
+  }
+  
+  .btn-redeem {
+    background: #22c55e;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.3);
   }
 `;
 
@@ -388,8 +419,8 @@ const questions = [
   {
     id: 'location',
     type: 'input',
-    title: "Where do you shop?",
-    placeholder: "Zip Code"
+    title: "Where do you shop? (optional)",
+    placeholder: "your city"
   }
 ];
 
@@ -405,28 +436,23 @@ export default function SnappleQuizApp() {
     if (state.currentStep < questions.length - 1) {
       setState(prev => ({ ...prev, currentStep: prev.currentStep + 1 }));
     } else {
-      // --- START: GENERATE FREE AVATAR ---
-      // We use a fake delay to make it feel like "Analysis"
+      // Show "Analyzing" briefly for effect
       setState(prev => ({ ...prev, status: 'analyzing' }));
 
       setTimeout(() => {
         // 1. Determine Element
         const mood = state.answers['mood'] || 'fire';
         const elementMap = { fire: 'Fire', rain: 'Rain', air: 'Air', earth: 'Earth' };
+        const emojiMap = { fire: '🔥', rain: '🌧️', air: '💨', earth: '⛰️' };
+        
         const element = elementMap[mood];
+        const emoji = emojiMap[mood];
 
         // 2. Determine Product
         const flavorScore = parseInt(state.answers['flavor'] || "50");
         let product = 'Snapple Elements';
         if (flavorScore < 40) product = 'Snapple Peach Tea';
         else if (flavorScore > 70) product = 'Snapple Kiwi Strawberry';
-
-        // 3. Generate Free DiceBear Avatar URL
-        // We use the timestamp as a "seed" so it's unique every time
-        const uniqueSeed = Date.now().toString(); 
-        // We set background color based on element (Warm for fire, Cool for rain)
-        const bgColors = { 'Fire': 'ffdfbf', 'Rain': 'b6e3f4', 'Air': 'e1eadf', 'Earth': 'd1d4f9' };
-        const avatarUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${uniqueSeed}&backgroundColor=${bgColors[element]}`;
 
         setState(prev => ({ 
             ...prev, 
@@ -435,11 +461,10 @@ export default function SnappleQuizApp() {
               element, 
               product, 
               desc: "Based on your unique vibe, we've found your perfect match!", 
-              avatarUrl 
+              emoji // Storing the emoji instead of URL
             } 
         }));
-      }, 2500);
-      // --- END: GENERATE FREE AVATAR ---
+      }, 1500);
     }
   };
 
@@ -453,7 +478,7 @@ export default function SnappleQuizApp() {
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card">
             <div className="intro-icon">🥤</div>
             <h1 className="title" style={{ fontSize: '40px', marginBottom: '10px' }}>Find Your <span style={{ color: '#d946ef' }}>Flavor</span></h1>
-            <p style={{ color: '#64748b', fontSize: '18px', marginBottom: '30px' }}>Get your Element & AI Avatar in 60 seconds.</p>
+            <p style={{ color: '#64748b', fontSize: '18px', marginBottom: '30px' }}>Get your Element & Personal Match in 60 seconds.</p>
             <button onClick={() => setState(prev => ({ ...prev, status: 'quiz' }))} className="start-btn">
               Start Quiz
             </button>
@@ -464,7 +489,7 @@ export default function SnappleQuizApp() {
       {state.status === 'analyzing' && (
         <div style={{ textAlign: 'center', color: 'white' }}>
             <div style={{ fontSize: '60px', marginBottom: '20px' }} className="animate-bounce">🔮</div>
-            <h2 style={{ fontSize: '30px', fontWeight: '900' }}>Consulting the Oracle...</h2>
+            <h2 style={{ fontSize: '30px', fontWeight: '900' }}>Mixing Flavors...</h2>
         </div>
       )}
 
@@ -472,15 +497,26 @@ export default function SnappleQuizApp() {
       {state.status === 'results' && state.results && (
         <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="card">
             <h1 className="title" style={{ fontSize: '50px', color: '#f97316', margin: '10px 0' }}>{state.results.element}</h1>
-            <div className="avatar-box">
-                {/* DISPLAY THE FREE AVATAR HERE */}
-                <img src={state.results.avatarUrl} className="avatar-img" alt="Generated Avatar" />
+            
+            {/* BIG EMOJI INSTEAD OF AVATAR */}
+            <div className="emoji-box">
+                {state.results.emoji}
             </div>
+            
             <div style={{ background: '#fff7ed', padding: '20px', borderRadius: '15px', border: '1px solid #ffedd5', marginTop: '20px' }}>
                 <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b' }}>{state.results.product}</h2>
                 <p style={{ color: '#475569', marginTop: '5px' }}>{state.results.desc}</p>
             </div>
-            <button onClick={() => window.location.reload()} className="start-btn" style={{ background: '#e2e8f0', color: '#334155', marginTop: '20px' }}>Start Over</button>
+
+            {/* ACTION BUTTONS (START OVER & REDEEM) */}
+            <div className="action-buttons">
+                <button onClick={() => window.location.reload()} className="action-btn btn-restart">
+                   <RotateCcw size={18} /> Start Over
+                </button>
+                <button onClick={() => alert("Code: SNAPPLE2024")} className="action-btn btn-redeem">
+                   <Gift size={18} /> Redeem Code
+                </button>
+            </div>
         </motion.div>
       )}
 
