@@ -7,28 +7,314 @@ import {
   Flame, CloudRain, Wind, Mountain, 
   Coffee, Droplets, Utensils, Zap, 
   Heart, Leaf, DollarSign, Smile, 
-  ArrowRight, Check, ChevronUp, RotateCcw
+  ChevronUp, Check, ArrowRight, RotateCcw
 } from 'lucide-react';
 
-// --- FORCE FONT ---
-const FontStyles = () => (
-  <style jsx global>{`
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600;700&display=swap');
-    body { font-family: 'Fredoka', sans-serif; }
-  `}</style>
-);
+/* -----------------------------------------------------------
+   NO-FAIL CSS STYLES
+   These styles are injected directly into the browser.
+   They cannot be broken by build tools.
+----------------------------------------------------------- */
+const styles = `
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;600;700&display=swap');
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Fredoka', sans-serif;
+    background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+    min-height: 100vh;
+    color: #1e293b;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+
+  /* CARDS & LAYOUT */
+  .card {
+    background: white;
+    border-radius: 30px;
+    padding: 30px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .title {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 25px;
+    line-height: 1.2;
+    color: #0f172a;
+  }
+
+  /* BUTTON GRIDS */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    width: 100%;
+  }
+
+  .grid-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    border-radius: 20px;
+    border: 2px solid #f1f5f9;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    aspect-ratio: 1;
+  }
+
+  .grid-btn:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+  }
+
+  .grid-btn.selected {
+    border-width: 3px;
+    background: #fdf4ff; /* light purple tint */
+    border-color: #a855f7;
+    transform: scale(1.05);
+    box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.2);
+  }
+
+  .grid-btn-label {
+    font-weight: 700;
+    font-size: 16px;
+    color: #334155;
+  }
+  
+  .grid-btn.selected .grid-btn-label {
+    color: #9333ea;
+  }
+
+  /* LIST BUTTONS (PILLS) */
+  .list-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .list-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 18px 24px;
+    width: 100%;
+    border-radius: 16px;
+    border: 2px solid #f1f5f9;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+
+  .list-btn:hover {
+    border-color: #cbd5e1;
+    background: #f8fafc;
+  }
+
+  .list-btn.selected {
+    border-color: #a855f7;
+    background: #faf5ff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+
+  .list-icon {
+    font-size: 24px;
+    width: 30px;
+    text-align: center;
+  }
+
+  .list-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: #334155;
+    flex-grow: 1;
+  }
+
+  /* SLIDER */
+  .slider-container {
+    padding: 40px 10px;
+  }
+  
+  .range-input {
+    width: 100%;
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    appearance: none;
+    outline: none;
+  }
+  
+  .range-input::-webkit-slider-thumb {
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    background: #a855f7;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 4px solid white;
+    box-shadow: 0 0 0 2px #a855f7;
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* INPUT */
+  .text-input {
+    width: 100%;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-bottom: 4px solid #e2e8f0;
+    outline: none;
+    background: transparent;
+    border-radius: 0;
+  }
+  
+  .text-input:focus {
+    border-color: #a855f7;
+  }
+
+  /* NAVIGATION */
+  .nav-btn {
+    margin-top: 30px;
+    padding: 16px 32px;
+    background: #0f172a;
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    transition: transform 0.2s;
+  }
+  
+  .nav-btn:hover {
+    transform: scale(1.05);
+    background: #1e293b;
+  }
+  
+  .nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bg {
+    width: 100%;
+    height: 10px;
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: white;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+  }
+
+  /* INTRO & RESULTS SPECIFIC */
+  .intro-icon {
+    width: 100px;
+    height: 100px;
+    background: #fbbf24;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    transform: rotate(-10deg);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  }
+
+  .avatar-box {
+    background: #f1f5f9;
+    border-radius: 20px;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 60px;
+    border: 5px solid white;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+    margin: 20px 0;
+    overflow: hidden;
+  }
+  
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .start-btn {
+    width: 100%;
+    padding: 20px;
+    background: #0f172a;
+    color: white;
+    font-size: 20px;
+    font-weight: 700;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    transition: transform 0.1s;
+  }
+  
+  .start-btn:active {
+    transform: scale(0.98);
+  }
+`;
 
 // --- DATA ---
 const questions = [
   {
     id: 'mood',
-    type: 'grid', 
+    type: 'grid',
     title: "What's your current vibe?",
     options: [
-      { id: 'fire', label: 'Fired Up', icon: Flame, style: 'text-orange-500 bg-orange-50 border-orange-200' },
-      { id: 'rain', label: 'Chill Mode', icon: CloudRain, style: 'text-blue-500 bg-blue-50 border-blue-200' },
-      { id: 'air', label: 'Flowing', icon: Wind, style: 'text-yellow-500 bg-yellow-50 border-yellow-200' },
-      { id: 'earth', label: 'Grounded', icon: Mountain, style: 'text-emerald-500 bg-emerald-50 border-emerald-200' },
+      { id: 'fire', label: 'Fired Up', icon: Flame, color: '#f97316' },
+      { id: 'rain', label: 'Chill Mode', icon: CloudRain, color: '#3b82f6' },
+      { id: 'air', label: 'Flowing', icon: Wind, color: '#eab308' },
+      { id: 'earth', label: 'Grounded', icon: Mountain, color: '#22c55e' },
     ]
   },
   {
@@ -56,10 +342,10 @@ const questions = [
     type: 'grid',
     title: "Morning Ritual?",
     options: [
-      { id: 'coffee', label: 'Coffee', icon: Coffee, style: 'text-amber-700 bg-amber-50 border-amber-200' },
-      { id: 'refresh', label: 'Fresh Bev', icon: Zap, style: 'text-pink-600 bg-pink-50 border-pink-200' },
-      { id: 'water', label: 'Water', icon: Droplets, style: 'text-cyan-600 bg-cyan-50 border-cyan-200' },
-      { id: 'food', label: 'Food', icon: Utensils, style: 'text-orange-600 bg-orange-50 border-orange-200' },
+      { id: 'coffee', label: 'Coffee', icon: Coffee, color: '#78350f' },
+      { id: 'refresh', label: 'Fresh Bev', icon: Zap, color: '#db2777' },
+      { id: 'water', label: 'Water', icon: Droplets, color: '#06b6d4' },
+      { id: 'food', label: 'Food', icon: Utensils, color: '#ea580c' },
     ]
   },
   {
@@ -109,7 +395,6 @@ const questions = [
   }
 ];
 
-// --- COMPONENT ---
 export default function SnappleQuizApp() {
   const [state, setState] = useState({ currentStep: 0, answers: {}, results: null, status: 'intro' });
   const currentQ = questions[state.currentStep];
@@ -123,63 +408,58 @@ export default function SnappleQuizApp() {
       setState(prev => ({ ...prev, currentStep: prev.currentStep + 1 }));
     } else {
       setTimeout(() => {
-        setState(prev => ({ 
-            ...prev, 
-            status: 'results', 
-            results: { element: 'Fire', product: 'Snapple Peach Tea', desc: "Matches your spicy energy!", avatarUrl: null, tags: ['Eco Warrior', 'Taste Seeker'] } 
-        }));
+        setState(prev => ({ ...prev, status: 'results', results: { element: 'Fire', product: 'Snapple Peach Tea', desc: "Matches your spicy energy!", avatarUrl: null } }));
       }, 2000);
       setState(prev => ({ ...prev, status: 'analyzing' }));
     }
   };
 
-  // --- RENDER ---
   return (
-    // 1. HARDCODED PURPLE GRADIENT BACKGROUND
-    <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 font-sans text-slate-900 flex flex-col items-center justify-center p-4">
-      <FontStyles />
+    <div className="container">
+      {/* INJECT CSS */}
+      <style>{styles}</style>
 
-      {/* INTRO */}
+      {/* --- INTRO SCREEN --- */}
       {state.status === 'intro' && (
-        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-md w-full bg-white rounded-[2rem] shadow-2xl p-8 text-center relative overflow-hidden">
-            <div className="w-24 h-24 bg-yellow-400 rounded-full mx-auto flex items-center justify-center text-5xl shadow-lg mb-6 rotate-[-6deg]">🥤</div>
-            <h1 className="text-5xl font-black text-slate-900 mb-4 leading-none">Find Your <span className="text-purple-600">Flavor</span></h1>
-            <p className="text-slate-500 text-lg mb-8 font-medium">Get your Element & AI Avatar in 60 seconds.</p>
-            <button onClick={() => setState(prev => ({ ...prev, status: 'quiz' }))} className="w-full py-5 bg-slate-900 text-white font-bold rounded-2xl text-xl hover:scale-[1.02] transition-transform">
+        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card">
+            <div className="intro-icon">🥤</div>
+            <h1 className="title" style={{ fontSize: '40px', marginBottom: '10px' }}>Find Your <span style={{ color: '#d946ef' }}>Flavor</span></h1>
+            <p style={{ color: '#64748b', fontSize: '18px', marginBottom: '30px' }}>Get your Element & AI Avatar in 60 seconds.</p>
+            <button onClick={() => setState(prev => ({ ...prev, status: 'quiz' }))} className="start-btn">
               Start Quiz
             </button>
         </motion.div>
       )}
 
-      {/* ANALYZING */}
+      {/* --- ANALYZING SCREEN --- */}
       {state.status === 'analyzing' && (
-        <div className="text-center text-white">
-            <div className="text-6xl animate-bounce mb-4">🔮</div>
-            <h2 className="text-3xl font-black">Consulting the Oracle...</h2>
+        <div style={{ textAlign: 'center', color: 'white' }}>
+            <div style={{ fontSize: '60px', marginBottom: '20px' }} className="animate-bounce">🔮</div>
+            <h2 style={{ fontSize: '30px', fontWeight: '900' }}>Consulting the Oracle...</h2>
         </div>
       )}
 
-      {/* RESULTS */}
+      {/* --- RESULTS SCREEN --- */}
       {state.status === 'results' && state.results && (
-        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="max-w-md w-full bg-white rounded-[2rem] p-6 shadow-2xl space-y-6 text-center">
-            <h1 className="text-6xl font-black text-orange-500 mt-4">{state.results.element}</h1>
-            <div className="bg-slate-100 rounded-2xl p-6 h-64 flex items-center justify-center text-6xl border-4 border-white shadow-inner">
-                {state.results.avatarUrl ? <img src={state.results.avatarUrl} /> : '🧑‍🎨'}
+        <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="card">
+            <h1 className="title" style={{ fontSize: '50px', color: '#f97316', margin: '10px 0' }}>{state.results.element}</h1>
+            <div className="avatar-box">
+                {state.results.avatarUrl ? <img src={state.results.avatarUrl} className="avatar-img" /> : '🧑‍🎨'}
             </div>
-            <div className="bg-orange-50 p-4 rounded-xl border border-orange-100">
-                <h2 className="text-2xl font-black text-slate-900">{state.results.product}</h2>
-                <p className="text-slate-600">{state.results.desc}</p>
+            <div style={{ background: '#fff7ed', padding: '20px', borderRadius: '15px', border: '1px solid #ffedd5', marginTop: '20px' }}>
+                <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#1e293b' }}>{state.results.product}</h2>
+                <p style={{ color: '#475569', marginTop: '5px' }}>{state.results.desc}</p>
             </div>
-            <button onClick={() => window.location.reload()} className="w-full py-4 bg-slate-200 font-bold rounded-xl text-slate-700">Start Over</button>
+            <button onClick={() => window.location.reload()} className="start-btn" style={{ background: '#e2e8f0', color: '#334155', marginTop: '20px' }}>Start Over</button>
         </motion.div>
       )}
 
-      {/* QUIZ */}
+      {/* --- QUIZ SCREEN --- */}
       {state.status === 'quiz' && (
-        <div className="w-full max-w-md">
-           {/* Progress */}
-           <div className="w-full h-3 bg-black/20 rounded-full mb-6">
-             <motion.div className="h-full bg-white rounded-full" initial={{ width: 0 }} animate={{ width: `${((state.currentStep + 1) / questions.length) * 100}%` }} />
+        <div style={{ width: '100%', maxWidth: '450px' }}>
+           {/* Progress Bar */}
+           <div className="progress-bg">
+             <motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: `${((state.currentStep + 1) / questions.length) * 100}%` }} />
            </div>
 
            <AnimatePresence mode="wait">
@@ -188,89 +468,97 @@ export default function SnappleQuizApp() {
                initial={{ x: 50, opacity: 0 }} 
                animate={{ x: 0, opacity: 1 }} 
                exit={{ x: -50, opacity: 0 }} 
-               className="bg-white rounded-[2rem] shadow-2xl p-6 min-h-[500px] flex flex-col"
+               className="card"
+               style={{ minHeight: '500px', display: 'flex', flexDirection: 'column' }}
              >
-               <h2 className="text-3xl font-black text-slate-900 mb-8">{currentQ.title}</h2>
-               <div className="flex-grow space-y-3">
+               <h2 className="title">{currentQ.title}</h2>
+               
+               <div style={{ flexGrow: 1, width: '100%' }}>
                  
-                 {/* GRID (Big Cards) */}
+                 {/* 1. GRID LAYOUT */}
                  {currentQ.type === 'grid' && (
-                   <div className="grid grid-cols-2 gap-3">
+                   <div className="grid-2">
                      {currentQ.options?.map((opt) => (
                        <button key={opt.id} onClick={() => handleAnswer(opt.id)} 
-                         className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 border-2 transition-all
-                         ${state.answers[currentQ.id] === opt.id ? 'border-purple-500 bg-purple-50 scale-105 shadow-lg' : 'border-slate-100 hover:bg-slate-50'}`}
+                         className={`grid-btn ${state.answers[currentQ.id] === opt.id ? 'selected' : ''}`}
                        >
-                         <opt.icon className={`w-8 h-8 ${opt.style?.split(' ')[0] || 'text-slate-700'}`} />
-                         <span className="font-bold text-slate-700">{opt.label}</span>
+                         <opt.icon size={32} color={opt.color} />
+                         <span className="grid-btn-label">{opt.label}</span>
                        </button>
                      ))}
                    </div>
                  )}
 
-                 {/* LIST (Pill Buttons) */}
+                 {/* 2. LIST LAYOUT */}
                  {currentQ.type === 'list' && (
-                   <div className="space-y-3">
+                   <div className="list-stack">
                      {currentQ.options?.map((opt) => (
                        <button key={opt.id} onClick={() => handleAnswer(opt.id)} 
-                         className={`w-full p-4 rounded-xl flex items-center gap-4 border-2 transition-all
-                         ${state.answers[currentQ.id] === opt.id ? 'border-purple-500 bg-purple-50 shadow-md' : 'border-slate-100 hover:border-slate-200'}`}
+                         className={`list-btn ${state.answers[currentQ.id] === opt.id ? 'selected' : ''}`}
                        >
-                         <span className="text-2xl">{opt.icon}</span>
-                         <span className="font-bold text-lg text-slate-700">{opt.label}</span>
-                         {state.answers[currentQ.id] === opt.id && <Check className="ml-auto text-purple-600" />}
+                         <span className="list-icon">{opt.icon}</span>
+                         <span className="list-label">{opt.label}</span>
+                         {state.answers[currentQ.id] === opt.id && <Check color="#a855f7" />}
                        </button>
                      ))}
                    </div>
                  )}
 
-                 {/* SLIDER */}
+                 {/* 3. SLIDER */}
                  {currentQ.type === 'slider' && (
-                   <div className="py-12 px-4">
-                     <input type="range" min="0" max="100" className="w-full h-4 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600" onChange={(e) => handleAnswer(e.target.value)} />
-                     <div className="flex justify-between font-bold text-slate-400 mt-4 text-xs uppercase tracking-widest">
+                   <div className="slider-container">
+                     <input type="range" min="0" max="100" className="range-input" onChange={(e) => handleAnswer(e.target.value)} />
+                     <div className="slider-labels">
                         <span>{currentQ.minLabel}</span><span>{currentQ.midLabel}</span><span>{currentQ.maxLabel}</span>
                      </div>
                    </div>
                  )}
 
-                 {/* RANK */}
+                 {/* 4. RANK */}
                  {currentQ.type === 'rank' && (
-                   <div className="grid grid-cols-2 gap-3">
+                   <div className="grid-2">
                       {currentQ.options?.map((opt) => {
                         const rank = (state.answers[currentQ.id] || []).indexOf(opt.id);
                         return (
-                          <button key={opt.id} onClick={() => { const current = state.answers[currentQ.id] || []; if (rank !== -1) { handleAnswer(current.filter(id => id !== opt.id)); } else { if (current.length < 3) handleAnswer([...current, opt.id]); } }} 
-                            className={`p-4 rounded-xl border-2 flex flex-col items-center justify-center font-bold ${rank !== -1 ? 'border-purple-500 bg-purple-50 text-purple-900' : 'border-slate-100 text-slate-400'}`}
+                          <button key={opt.id} 
+                            onClick={() => { const current = state.answers[currentQ.id] || []; if (rank !== -1) { handleAnswer(current.filter(id => id !== opt.id)); } else { if (current.length < 3) handleAnswer([...current, opt.id]); } }} 
+                            className={`grid-btn ${rank !== -1 ? 'selected' : ''}`}
                           >
-                            <opt.icon className="w-6 h-6 mb-2"/>
-                            {opt.label}
-                            {rank !== -1 && <span className="absolute top-2 right-2 bg-purple-600 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center">{rank + 1}</span>}
+                            <opt.icon size={24} style={{ marginBottom: '8px' }}/>
+                            <span className="grid-btn-label">{opt.label}</span>
+                            {rank !== -1 && <div style={{ position: 'absolute', top: '10px', right: '10px', background: '#0f172a', color: 'white', width: '24px', height: '24px', borderRadius: '50%', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{rank + 1}</div>}
                           </button>
                         )
                       })}
                    </div>
                  )}
 
-                 {/* YES/NO */}
+                 {/* 5. YES/NO */}
                  {currentQ.type === 'yes-no' && (
-                   <div className="space-y-4">
-                     <button onClick={() => handleAnswer('yes')} className={`w-full p-5 rounded-xl border-2 font-black text-xl ${state.answers[currentQ.id] === 'yes' ? 'bg-green-100 border-green-500 text-green-700' : 'bg-white border-slate-100'}`}>YES</button>
-                     <button onClick={() => handleAnswer('no')} className={`w-full p-5 rounded-xl border-2 font-black text-xl ${state.answers[currentQ.id] === 'no' ? 'bg-red-100 border-red-500 text-red-700' : 'bg-white border-slate-100'}`}>NOPE</button>
-                     {state.answers[currentQ.id] && <div className="p-4 bg-purple-100 text-purple-800 rounded-xl font-bold text-sm">💡 Fact: {currentQ.fact}</div>}
+                   <div className="list-stack">
+                     <button onClick={() => handleAnswer('yes')} className={`list-btn ${state.answers[currentQ.id] === 'yes' ? 'selected' : ''}`} style={{justifyContent: 'center', fontWeight: '900', fontSize: '20px'}}>
+                       YES
+                     </button>
+                     <button onClick={() => handleAnswer('no')} className={`list-btn ${state.answers[currentQ.id] === 'no' ? 'selected' : ''}`} style={{justifyContent: 'center', fontWeight: '900', fontSize: '20px'}}>
+                       NOPE
+                     </button>
+                     {state.answers[currentQ.id] && <div style={{ padding: '20px', background: '#f3e8ff', color: '#6b21a8', borderRadius: '12px', fontWeight: 'bold', fontSize: '14px', border: '1px solid #e9d5ff', marginTop: '20px' }}>💡 Fact: {currentQ.fact}</div>}
                    </div>
                  )}
 
-                 {/* INPUT */}
-                 {currentQ.type === 'input' && <input type="text" placeholder={currentQ.placeholder} className="w-full p-5 text-2xl font-bold border-b-4 border-slate-200 text-center outline-none focus:border-purple-500" onChange={(e) => handleAnswer(e.target.value)} />}
+                 {/* 6. INPUT */}
+                 {currentQ.type === 'input' && <input type="text" placeholder={currentQ.placeholder} className="text-input" onChange={(e) => handleAnswer(e.target.value)} />}
                
                </div>
 
-               <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
-                 <button onClick={nextStep} className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:scale-105 transition-transform flex items-center gap-2">
-                   Next <ChevronUp className="w-4 h-4 rotate-90" />
-                 </button>
-               </div>
+               <button 
+                 onClick={nextStep} 
+                 disabled={!state.answers[currentQ.id] && currentQ.type !== 'input' && currentQ.type !== 'slider'}
+                 className="nav-btn"
+               >
+                 Next <ChevronUp size={20} style={{ transform: 'rotate(90deg)' }} />
+               </button>
+
              </motion.div>
            </AnimatePresence>
         </div>
